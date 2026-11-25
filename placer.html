@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Place les 14 pays de l'aire africaine</title>
+<title>Place les pays et les capitales de l'aire africaine</title>
 <style>
 :root{--ink:#2b211b;--terra:#b8503f;--panel:#fbf6ec;--sea:#cfe4f2;--vide:#eadbb9}
 *{box-sizing:border-box}
@@ -31,7 +31,7 @@ svg text{font-family:"Segoe UI",Verdana,Arial,sans-serif;font-weight:700}
 .pa.faux{fill:#d32f2f!important}
 .ld{stroke:#222;stroke-width:.22}
 .lab{paint-order:stroke;stroke:#fff;stroke-width:.55;stroke-linejoin:round}
-.pn{font-size:1.75px;fill:#111}
+.pn{font-size:1.75px;fill:#111}.cn{font-size:1.35px;fill:#7a1010;font-style:italic}.st{fill:#111;stroke:#fff;stroke-width:.12}
 .el{opacity:0;transition:opacity .3s;pointer-events:none}.el.on{opacity:1}
 .mk{cursor:pointer;outline:none}.mk circle{fill:#111;stroke:#fff;stroke-width:.3}.mk text{fill:#fff;font-size:1.6px;pointer-events:none}
 .mk.ok circle{fill:#2e7d32}
@@ -40,42 +40,46 @@ svg text{font-family:"Segoe UI",Verdana,Arial,sans-serif;font-weight:700}
 <div class="wrap">
  <div class="map" id="map"></div>
  <aside class="side">
-  <h1>Place les pays sur la carte</h1>
-  <p class="sub">Glisse chaque nom sur le bon pays ou sur son numéro. Tu peux aussi cliquer sur un nom, puis sur le pays.</p>
+  <h1 id="titre">Place les pays sur la carte</h1>
+  <p class="sub" id="sub"></p>
   <p class="score" id="score"></p>
   <div id="chips"></div>
   <div class="btns">
-   <button id="tous">Les 14 pays</button><button id="neuf">Les 9 pays du test ★</button><button id="sol">Montrer la solution</button>
+   <button id="tous">Les 14 pays</button><button id="neuf">Les 9 pays du test ★</button><button id="caps">Les 14 capitales</button><button id="cap4">Les 4 capitales du test ★</button><button id="sol">Montrer la solution</button>
   </div>
   <p style="margin:10px 0 0;font-size:14px"><a href="pays.html">Pays et capitales</a> · <a href="index.html">Carte physiographique</a></p>
-  <p class="src">Fond de carte : Natural Earth (domaine public). Les numéros sont ceux du cahier, p. 4. Les pays en gris ne font pas partie de l'aire culturelle étudiée.</p>
+  <p class="src">Fond de carte : Natural Earth (domaine public). Les numéros sont ceux du cahier, p. 4. Les étoiles marquent ce qui est au test. Les pays en gris ne font pas partie de l'aire culturelle étudiée.</p>
  </aside>
 </div>
 <script>
 var NOMS={1:"Mali",2:"Togo",3:"Niger",4:"Nigeria",5:"Gabon",6:"Angola",7:"République démocratique du Congo",8:"Afrique du Sud",9:"Soudan du Sud",10:"Rwanda",11:"Tanzanie",12:"Mozambique",13:"Somalie",14:"Madagascar"};
-var TEST=[1,2,4,7,8,9,10,13,14], liste=[], fait={}, err=0, sel=null;
+var CAPS={1:"Bamako",2:"Lomé",3:"Niamey",4:"Abuja",5:"Libreville",6:"Luanda",7:"Kinshasa",8:"Pretoria",9:"Djouba",10:"Kigali",11:"Dodoma",12:"Maputo",13:"Mogadiscio",14:"Antananarivo"};
+var TEST=[1,2,4,7,8,9,10,13,14], TESTC=[1,4,7,10], TOUS=[1,2,3,4,5,6,7,8,9,10,11,12,13,14], liste=[], fait={}, err=0, sel=null, mode="pays";
 function $(s){return document.querySelector(s)} function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
 function init(){
-  $$('[id^="c"].el').forEach(function(g){g.remove()});
   $$('.pa').forEach(function(p){p.dataset.col=p.getAttribute('fill')});
   $$('.pa,.mk').forEach(function(t){t.addEventListener('click',function(){ if(sel) essai(sel,t.dataset.n) })});
-  $('#tous').onclick=function(){partie(Object.keys(NOMS).map(Number))};
-  $('#neuf').onclick=function(){partie(TEST)};
+  $('#tous').onclick=function(){partie(TOUS,'pays')};
+  $('#neuf').onclick=function(){partie(TEST,'pays')};
+  $('#caps').onclick=function(){partie(TOUS,'caps')};
+  $('#cap4').onclick=function(){partie(TESTC,'caps')};
   $('#sol').onclick=function(){liste.forEach(function(n){place(n)});maj()};
-  partie(Object.keys(NOMS).map(Number));
+  partie(TOUS,'pays');
 }
-function partie(l){ liste=l.slice(); fait={}; err=0; sel=null;
-  $$('.pa').forEach(function(p){ var n=+p.dataset.n, dedans=liste.indexOf(n)>=0; p.setAttribute('fill',dedans?'#eadbb9':p.dataset.col) });
-  for(var n=1;n<=14;n++){ var dedans=liste.indexOf(n)>=0; $('#n'+n).classList.toggle('on',!dedans); $('#mk'+n).classList.toggle('ok',!dedans) }
+function partie(l,md){ liste=l.slice(); fait={}; err=0; sel=null; mode=md; var cap=mode==='caps';
+  $('#titre').textContent=cap?'Place les capitales sur la carte':'Place les pays sur la carte';
+  $('#sub').textContent=cap?'Glisse chaque capitale sur son pays. Tu peux aussi cliquer sur une capitale, puis sur le pays.':'Glisse chaque nom sur le bon pays ou sur son numéro. Tu peux aussi cliquer sur un nom, puis sur le pays.';
+  $$('.pa').forEach(function(p){ var n=+p.dataset.n, vide=!cap&&liste.indexOf(n)>=0; p.setAttribute('fill',vide?'#eadbb9':p.dataset.col) });
+  for(var n=1;n<=14;n++){ var cible=liste.indexOf(n)>=0; $('#n'+n).classList.toggle('on',cap||!cible); $('#c'+n).classList.remove('on'); $('#mk'+n).classList.toggle('ok',!cible) }
   var m=liste.slice(); for(var i=m.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=m[i];m[i]=m[j];m[j]=t}
-  var box=$('#chips'); box.innerHTML='';
-  m.forEach(function(n){ var c=document.createElement('div'); c.className='chip'; c.dataset.n=n; c.textContent=NOMS[n]+(TEST.indexOf(n)>=0?' ★':''); c.addEventListener('pointerdown',prise); box.appendChild(c) });
+  var box=$('#chips'); box.innerHTML=''; var etoile=cap?TESTC:TEST;
+  m.forEach(function(n){ var c=document.createElement('div'); c.className='chip'; c.dataset.n=n; c.textContent=(cap?CAPS[n]:NOMS[n])+(etoile.indexOf(n)>=0?' ★':''); c.addEventListener('pointerdown',prise); box.appendChild(c) });
   maj();
 }
 function maj(){ var k=liste.filter(function(n){return fait[n]}).length, s=$('#score');
   s.classList.toggle('fini',k===liste.length);
-  s.textContent=k===liste.length ? 'Bravo ! '+k+' pays placés, '+err+' erreur'+(err>1?'s':'')+'.' : 'Placés : '+k+' / '+liste.length+'   ·   Erreurs : '+err; }
-function place(n){ fait[n]=true; var p=$('#p'+n); p.setAttribute('fill',p.dataset.col); $('#n'+n).classList.add('on'); $('#mk'+n).classList.add('ok');
+  s.textContent=k===liste.length ? 'Bravo ! '+k+(mode==='caps'?' capitales placées, ':' pays placés, ')+err+' erreur'+(err>1?'s':'')+'.' : (mode==='caps'?'Placées : ':'Placés : ')+k+' / '+liste.length+'   ·   Erreurs : '+err; }
+function place(n){ fait[n]=true; var p=$('#p'+n); p.setAttribute('fill',p.dataset.col); $('#n'+n).classList.add('on'); $('#mk'+n).classList.add('ok'); if(mode==='caps') $('#c'+n).classList.add('on');
   var c=$('.chip[data-n="'+n+'"]'); if(c) c.remove(); }
 function essai(chip,cible){ var n=+chip.dataset.n; cible=+cible;
   if(liste.indexOf(cible)<0||fait[cible]){ return }
